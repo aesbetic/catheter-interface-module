@@ -1,19 +1,31 @@
+BOARD ?= basys3
+VIVADO ?= vivado
+SUPPORTED_BOARDS := basys3 arty-a7-100
+
+ifeq ($(filter $(SUPPORTED_BOARDS),$(BOARD)),)
+$(error Unsupported BOARD '$(BOARD)'; choose one of: $(SUPPORTED_BOARDS))
+endif
+ifneq ($(words $(BOARD)),1)
+$(error BOARD must name exactly one board)
+endif
+
 PROJECT := $(notdir $(shell pwd))
-XPR := build/$(PROJECT).xpr
+BUILD_DIR := build/$(BOARD)
+XPR := $(BUILD_DIR)/$(PROJECT).xpr
+PROJECT_INPUTS := makefile $(wildcard scripts/*.tcl src/*.vhd sim/*.vhd constraints/*.xdc)
+
+.PHONY: all project bitstream clean
 
 all: bitstream
 
-project:
-	mkdir -p build
-	vivado -mode batch -source scripts/create_project.tcl -nojournal -nolog
+project: $(XPR)
 
 bitstream: $(XPR)
-	vivado -mode batch -source scripts/build_bitstream.tcl -nojournal -nolog
-	mkdir -p out
-	cp build/$(PROJECT).runs/impl_1/*.bit out/
+	$(VIVADO) -mode batch -source scripts/build_bitstream.tcl -nojournal -nolog -tclargs $(BOARD)
 
-$(XPR):
-	$(MAKE) project
+$(XPR): $(PROJECT_INPUTS)
+	mkdir -p "$(BUILD_DIR)"
+	$(VIVADO) -mode batch -source scripts/create_project.tcl -nojournal -nolog -tclargs $(BOARD)
 
 clean:
 	rm -rf build out *.jou *.log
