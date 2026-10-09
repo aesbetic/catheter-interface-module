@@ -9,6 +9,7 @@ entity arty_top is
         sw   : in std_logic_vector(3 downto 0);
 		btn  : in std_logic_vector(1 downto 0);
 
+        ja : out std_logic_vector(2 downto 0);
         jb : out std_logic_vector(5 downto 0);
         led : out std_logic_vector(3 downto 0)
     );
@@ -81,6 +82,10 @@ begin
             tx3 => tx3_i
         );
 
+
+    ja(0) <= tx1_i;
+    ja(1) <= tx2_i;
+    ja(2) <= tx3_i;
 
     -- Differential PMOD JB used as single ended
     jb(0) <= tx1_i;
